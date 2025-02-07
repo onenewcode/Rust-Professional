@@ -1,4 +1,3 @@
-
 pub fn goldbach_conjecture() -> u64 {
     let mut count = 0;
     let mut sum = 0;
