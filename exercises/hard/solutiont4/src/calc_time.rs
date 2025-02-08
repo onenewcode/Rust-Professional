@@ -1,6 +1,12 @@
 use std::collections::HashMap;
+const HOLIDAYS: &[(i32, i32, i32)] = &[
+    (2025, 1, 1), // 元旦
+    (2025, 2, 9), // 春节前一天（假设是假期）
+    (2025, 2, 10), // 春节第一天
+];
 
 // 定义年月日结构体
+#[derive(Clone)]
 pub struct Date {
     year: i32,
     month: i32,
@@ -49,7 +55,7 @@ impl Date {
         if self.month == 12 && self.day == 31 {
             return 1;
         }
-        if self.year == 2020 || self.year == 2013 {
+        if self.year == 2020 || self.year == 2013  {
             let day_of_year = self.day_of_year();
             return ((day_of_year + 6) / 7) + 1;
         }
@@ -65,7 +71,7 @@ impl Date {
         let total_days_in_year = if self.is_leap_year() { 366 } else { 365 };
         total_days_in_year - self.day_of_year()
     }
-    // 计算从1970年1月1日到当前日期的总天数
+    // 计算从 1970 年 1 月 1 日到当前日期的总天数
     fn to_julian_day(&self) -> i32 {
         let mut days = 0;
         for y in 2010..self.year {
@@ -116,6 +122,75 @@ impl Date {
         }
         days - 1
     }
+    // 计算周几
+    fn get_weekday(&self) -> usize {
+        let &Date{year, month, day}=self;
+        // 调整月份和年份，对于蔡勒公式来说，一月和二月需要被视为上一年的十三月和十四月
+        let (y, m) = if month < 3 {
+            (year - 1, month + 12)
+        } else {
+            (year, month)
+        };
+    
+        let d = day as i32;
+        let c = y / 100; // 世纪数减一
+        let y = y % 100; // 年份后两位
+    
+        // 计算
+        let w = (y + y / 4 + c / 4 - 2 * c + (26 * (m + 1)) / 10 + d - 1) % 7;
+    
+        match w {
+            0 => 7,
+            1 => 1,
+            2 => 2,
+            3 => 3,
+            4 => 4,
+            5 => 5,
+            _ => 6,
+        }
+    }
+    // 判断是否是周末
+    fn is_weekend(&self) -> bool {
+        let weekday = self.get_weekday();
+        weekday == 6 || weekday == 7 // 假设星期一为 1，星期天为 7
+    }
+    fn is_holiday(&self) -> bool {
+        for &(year, month, day) in HOLIDAYS.iter() {
+            if self.year == year && self.month == month && self.day == day {
+                return true;
+            }
+        }
+        false
+    }
+    // 判断是否是交易日
+    fn is_trading_day(&self) -> bool {
+        !self.is_weekend() && !self.is_holiday()
+    }
+    
+    
+    fn find_days_until_next_trading_day(&self) -> i32 {
+        let mut days_passed = 0;
+        let mut current_date = self.clone();
+        loop {
+            if current_date.is_trading_day() {
+                return days_passed-1;
+            }
+            // 如果不是交易日，则尝试下一天
+            current_date.day += 1;
+            days_passed += 1;
+            // 处理月份和年份的进位
+            while current_date.day > current_date.days_in_month(current_date.month) {
+                current_date.day -= current_date.days_in_month(current_date.month);
+                current_date.month += 1;
+                if current_date.month > 12 {
+                    current_date.month = 1;
+                    current_date.year += 1;
+                }
+            }
+        }
+    }
+    
+    
 }
 
 pub fn time_info(time: &str) -> String {
@@ -125,5 +200,5 @@ pub fn time_info(time: &str) -> String {
     let days_remaining = current_date.days_remaining_in_year();
     let days_until_new_year = current_date.days_until_chinese_new_year();
 
-    format!("{},{},{}", week_number, days_remaining, days_until_new_year)
+    format!("{},{},{},{},{},{}", week_number,current_date.get_weekday(),current_date.day_of_year(), days_remaining, days_until_new_year,current_date.find_days_until_next_trading_day())
 }

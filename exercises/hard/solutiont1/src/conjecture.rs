@@ -1,49 +1,47 @@
-pub fn goldbach_conjecture() -> u64 {
-    let mut count = 0;
-    let mut sum = 0;
-    let mut number = 9;
+pub fn goldbach_conjecture() -> String {
+    const MAX: usize = 10000; // 答案在10000以内
 
-    while count < 2 {
-        if is_odd_composite(number) && !can_be_expressed(number) {
-            sum += number;
-            count += 1;
-        }
-        number += 2; // 只考虑奇数,减少循环次数
-    }
-    sum
-}
-// 判断是否为素数。
-fn is_prime(n: u64) -> bool {
-    if n == 2 || n == 3 {
-        return true;
-    }
-    if n == 1 || n & 1 == 0 || n % 3 == 0 {
-        return false;
-    }
-    let mut i = 5;
-    while i * i <= n {
-        if n % i == 0 || n % (i + 2) == 0 {
-            return false;
-        }
-        // 跳过2和3的倍数，减少循环次数
-        i += 6;
-    }
-    true
-}
-//
-fn is_odd_composite(n: u64) -> bool {
-    n & 1 == 1 && !is_prime(n)
-}
-// 判断是否能被组合
-fn can_be_expressed(n: u64) -> bool {
-    for i in 1.. {
-        let square_two = 2 * i * i;
-        if square_two > n {
-            break;
-        }
-        if is_prime(n - square_two) {
-            return true;
+    // 预处理素数
+    let mut is_prime = [true; MAX];
+    is_prime[0] = false;
+    is_prime[1] = false;
+    let sqrt = (MAX as f64).sqrt() as usize;
+    for i in 2..=sqrt {
+        if is_prime[i] {
+            let mut j = i * i;
+            while j < MAX {
+                is_prime[j] = false;
+                j += i;
+            }
         }
     }
-    false
+
+    // 预处理平方的两倍
+    let sqrt_limit = ((MAX as f64) / 2.0).sqrt() as usize;
+    let double_squares: Vec<u64> = (0..=sqrt_limit).map(|k| (2 * k * k) as u64).collect();
+
+    // 主要搜索逻辑
+    let mut found = Vec::with_capacity(2);
+    let mut n = 3;
+
+    'outer: while found.len() < 2 {
+        // 只考虑奇合数
+        if n % 2 == 1 && !is_prime[n as usize] {
+            // 检查是否可以表示为素数加上平方的两倍
+            for &double_square in &double_squares {
+                if double_square >= n {
+                    break;
+                }
+                let remaining = n - double_square;
+                if remaining < MAX as u64 && is_prime[remaining as usize] {
+                    n += 2;
+                    continue 'outer;
+                }
+            }
+            found.push(n);
+        }
+        n += 2;
+    }
+
+    format!("{},{}", found[0], found[1])
 }
