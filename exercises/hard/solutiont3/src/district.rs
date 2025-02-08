@@ -1,3 +1,4 @@
+
 use std::{
     collections::HashMap,
     fs::{self, File},
@@ -56,8 +57,8 @@ pub fn count_provinces() -> String {
     let mut sum: Vec<HashMap<String, bool>> = Vec::new();
     // 根据索引有顺序额的存储我们结果，方便拼接。
     let mut my_str = vec![String::new(); data.levels.len()];
-    // 把相关练的城市群的数据放进一个 hash 中，每次添加时，需要便利我们的 sum，进行 hash 查询，要便利查询所有关联的城市，能够查到就把同一个城市群的新内容拼接进去
-    // 如果没有查到证明是新省份，构造一个 hash 存入 sum 中，最后 sum 的长度就是当前数据的省份数量
+    // 把相关练的城市群的数据放进一个hash中，每次添加时，需要便利我们的sum，进行hash查询，要便利查询所有关联的城市，能够查到就把同一个城市群的新内容拼接进去
+    // 如果没有查到证明是新省份，构造一个hash存入sum中，最后sum的长度就是当前数据的省份数量
     data.levels.iter().for_each(|(i, city)| {
         city.0.iter().for_each(|(name, city)| {
             match sum
