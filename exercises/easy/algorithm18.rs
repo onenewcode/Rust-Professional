@@ -13,30 +13,28 @@
 
 use std::fmt::{self, Display, Formatter};
 
-pub fn merge_intervals(intervals: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
-    let mut result = vec![vec![i32::MAX,0]];
-    intervals.iter().for_each(|interval| {
-        let [lasts,laste]=result.last_mut().unwrap();
-        let mut tempv=vec![0;2];
-        let [start, end]= interval;
+pub fn merge_intervals(mut intervals: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+    // 如果没有区间，则直接返回空结果
+    if intervals.is_empty() {
+        return vec![];
+    }
 
-        if start<=laste{
-            tempv[0]=lasts;
-        }else {
-            tempv[0]=start;
+    // 按照每个区间的开始时间进行排序
+    intervals.sort_by(|a, b| a[0].cmp(&b[0]));
+
+    let mut result: Vec<Vec<i32>>  = vec![];
+    for interval in intervals {
+        // 如果结果集为空或者当前区间的开始大于结果集中最后一个区间的结束，
+        // 则没有重叠，直接将该区间加入结果集
+        if result.is_empty() || result.last().unwrap()[1] < interval[0] {
+            result.push(interval);
+        } else {
+            // 否则，存在重叠，合并这两个区间
+            let last = result.last_mut().unwrap();
+            last[1] = last[1].max(interval[1]);
         }
-        if end<=laste{
-            tempv[1]=laste;
-        }else {
-            tempv[1]=end;
-        }
-        if tempv[0]!=lasts||tempv[1]!=laste {
-            result.push(tempv);
-        }else {
-            lasts=tempv[0];
-            laste=tempv[1];
-        }
-    });
+    }
+
     result
 }
 

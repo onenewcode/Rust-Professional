@@ -2,95 +2,125 @@
 	queue
 	This question requires you to use queues to implement the functionality of the stac
 */
-
+use std::ops::Deref;
 
 #[derive(Debug)]
-struct Stack<T> {
-    size: usize,
-    data: Vec<T>,
+pub struct Queue<T> {
+    elements: Vec<T>,
 }
 
-impl<T> Stack<T> {
-    fn new() -> Self {
+impl<T> Queue<T> {
+    pub fn new() -> Queue<T> {
+        Queue {
+            elements: Vec::new(),
+        }
+    }
+
+    pub fn enqueue(&mut self, value: T) {
+        self.elements.push(value)
+    }
+
+    pub fn dequeue(&mut self) -> Result<T, &str> {
+        if !self.elements.is_empty() {
+            Ok(self.elements.remove(0usize))
+        } else {
+            Err("Queue is empty")
+        }
+    }
+
+    pub fn peek(&self) -> Result<&T, &str> {
+        match self.elements.first() {
+            Some(value) => Ok(value),
+            None => Err("Queue is empty"),
+        }
+    }
+
+    pub fn size(&self) -> usize {
+        self.elements.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.elements.is_empty()
+    }
+}
+
+impl<T> Default for Queue<T> {
+    fn default() -> Queue<T> {
+        Queue {
+            elements: Vec::new(),
+        }
+    }
+}
+
+pub struct myStack<T>
+{
+    //TODO
+    q1:Queue<T>,
+    q2:Queue<T>,
+    select_queue:bool
+}
+impl<T> myStack<T> {
+    pub fn new() -> Self {
         Self {
-            size: 0,
-            data: Vec::new(),
+            //TODO
+            q1:Queue::<T>::new(),
+            q2:Queue::<T>::new(),
+            select_queue:true
         }
     }
-
-    fn is_empty(&self) -> bool {
-        self.size == 0
-    }
-
-    fn len(&self) -> usize {
-        self.size
-    }
-
-    fn push(&mut self, val: T) {
-        self.data.push(val);
-        self.size += 1;
-    }
-
-    fn pop(&mut self) -> Option<T> {
-        if self.is_empty() {
-            None
+    pub fn push(&mut self, elem: T) {
+        //TODO
+        if self.select_queue {
+            self.q1.enqueue(elem);
         } else {
-            self.size -= 1;
-            self.data.pop()
+            self.q2.enqueue(elem);
         }
     }
-
-    fn peek(&self) -> Option<&T> {
-        if self.is_empty() {
-            None
-        } else {
-            self.data.last()
-        }
-    }
-}
-
-fn bracket_match(bracket: &str) -> bool {
-    let mut stack = Stack::new();
-
-    // Define the matching pairs
-    let matching_pairs = |open: char, close: char| -> bool {
-        match open {
-            '(' => close == ')',
-            '{' => close == '}',
-            '[' => close == ']',
-            _ => false,
-        }
-    };
-
-    for c in bracket.chars() {
-        // If it's an opening bracket, push it to the stack
-        if c == '(' || c == '{' || c == '[' {
-            stack.push(c);
-        }
-        // If it's a closing bracket, check if it matches the top of the stack
-        else if c == ')' || c == '}' || c == ']' {
-            if let Some(top) = stack.pop() {
-                if !matching_pairs(top, c) {
-                    return false; // If there's no match, return false
-                }
-            } else {
-                return false; // If the stack is empty but a closing bracket is found
+    pub fn pop(&mut self) -> Result<T, &str> {
+        //TODO
+        if self.select_queue {
+            if self.q1.is_empty() {
+                return Err("Stack is empty");
             }
+            while self.q1.size() > 1 {
+                let temp = self.q1.dequeue().unwrap();
+                self.q2.enqueue(temp);
+            }
+            let temp = self.q1.dequeue().unwrap();
+            self.select_queue = !self.select_queue;
+            return Ok(temp);
+        } else {
+            if self.q2.is_empty() {
+                return Err("Stack is empty");
+            }
+            while self.q2.size() > 1 {
+                let temp = self.q2.dequeue().unwrap();
+                self.q1.enqueue(temp);
+            }
+            let temp = self.q2.dequeue().unwrap();
+            self.select_queue = !self.select_queue;
+            return Ok(temp);
+        }
+        Err("Stack is empty")
+    }
+    pub fn is_empty(&self) -> bool {
+        //TODO
+        if self.select_queue {
+            return self.q1.is_empty();
+        } else {
+            return self.q2.is_empty();
         }
     }
-
-    // If the stack is empty at the end, all brackets matched
-    stack.is_empty()
 }
 
 #[cfg(test)]
 mod tests {
-	use super::*;
-	
-	#[test]
-	fn test_queue(){
-		let mut s = myStack::<i32>::new();
-		assert_eq!(s.pop(), Err("Stack is empty"));
+    use super::*;
+
+    #[test]
+    fn test_queue(){
+        let mut s = myStack::<i32>::new();
+        assert_eq!(s.pop(), Err("Stack is empty"));
         s.push(1);
         s.push(2);
         s.push(3);
@@ -104,5 +134,5 @@ mod tests {
         assert_eq!(s.pop(), Ok(1));
         assert_eq!(s.pop(), Err("Stack is empty"));
         assert_eq!(s.is_empty(), true);
-	}
+    }
 }

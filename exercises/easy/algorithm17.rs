@@ -9,12 +9,15 @@
     Hint: You can solve this problem using sorting, hash sets, or the two-pointer technique.
 */
 
-use std::fmt::{self, Display, Formatter};
+use std::{collections::HashSet, fmt::{self, Display, Formatter}};
 
 pub fn intersection(nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
-    // 第一个数组强转位hash，第二个数组遍历获取
-    let hs=nums1.iter().map(|&x| (x, 0)).collect();
-    nums2.iter().filter(|&x| nums1.contains(x)).collect()
+    let set1: HashSet<i32> = nums1.into_iter().collect(); // 将 nums1 转换为 HashSet
+    nums2.into_iter()
+        .filter(|e| set1.contains(e)) // 过滤出 nums2 中也出现在 set1 中的元素
+        .collect::<HashSet<i32>>() // 去重并转换为 HashSet（可选步骤，取决于你是否希望结果中没有重复）
+        .into_iter() // 再次转换为迭代器以便收集为 Vec
+        .collect() // 收集为 Vec<i32>
 }
 
 #[cfg(test)]
