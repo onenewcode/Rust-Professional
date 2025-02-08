@@ -1,9 +1,3 @@
-/*
-	single linked list merge
-	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
-*/
-
-
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
@@ -22,6 +16,7 @@ impl<T> Node<T> {
         }
     }
 }
+
 #[derive(Debug)]
 struct LinkedList<T> {
     length: u32,
@@ -69,35 +64,77 @@ impl<T> LinkedList<T> {
             },
         }
     }
+
+    fn pop_front_node(&mut self) -> Option<NonNull<Node<T>>> {
+        self.start.map(|node_ptr| {
+            unsafe {
+                let next_ptr = (*node_ptr.as_ptr()).next;
+                self.start = next_ptr;
+                if next_ptr.is_none() {
+                    self.end = None;
+                }
+                (*node_ptr.as_ptr()).next = None;
+                self.length -= 1;
+            }
+            node_ptr
+        })
+    }
+
+    fn add_node(&mut self, node_ptr: NonNull<Node<T>>) {
+        unsafe {
+            let node = &mut *node_ptr.as_ptr();
+            node.next = None;
+            match self.end {
+                None => {
+                    self.start = Some(node_ptr);
+                    self.end = Some(node_ptr);
+                }
+                Some(end) => {
+                    (*end.as_ptr()).next = Some(node_ptr);
+                    self.end = Some(node_ptr);
+                }
+            }
+            self.length += 1;
+        }
+    }
+}
+
+impl<T: Ord> LinkedList<T> {
     pub fn merge(mut list_a: LinkedList<T>, mut list_b: LinkedList<T>) -> Self {
         let mut merged_list = LinkedList::new();
-        
-        let mut current_a = list_a.start;
-        let mut current_b = list_b.start;
 
-        while let (Some(node_a), Some(node_b)) = (&current_a, &current_b) {
-            unsafe {
-                if (*node_a.as_ptr()).val <= (*node_b.as_ptr()).val {
-                    merged_list.add((*node_a.as_ptr()).val.clone());
-                    current_a = (*node_a.as_ptr()).next;
-                } else {
-                    merged_list.add((*node_b.as_ptr()).val.clone());
-                    current_b = (*node_b.as_ptr()).next;
+        loop {
+            let a_head = list_a.start;
+            let b_head = list_b.start;
+
+            if a_head.is_none() && b_head.is_none() {
+                break;
+            }
+
+            let choose_a = match (a_head, b_head) {
+                (Some(a), Some(b)) => unsafe { (*a.as_ptr()).val <= (*b.as_ptr()).val },
+                (Some(_), None) => true,
+                (None, Some(_)) => false,
+                (None, None) => break,
+            };
+
+            if choose_a {
+                if let Some(node) = list_a.pop_front_node() {
+                    merged_list.add_node(node);
+                }
+            } else {
+                if let Some(node) = list_b.pop_front_node() {
+                    merged_list.add_node(node);
                 }
             }
         }
-        while let Some(node_a) = current_a {
-            unsafe {
-                merged_list.add((*node_a.as_ptr()).val.clone());
-                current_a = (*node_a.as_ptr()).next;
-            }
-        }
 
-        while let Some(node_b) = current_b {
-            unsafe {
-                merged_list.add((*node_b.as_ptr()).val.clone());
-                current_b = (*node_b.as_ptr()).next;
-            }
+        // Handle remaining nodes in list_a or list_b
+        while let Some(node) = list_a.pop_front_node() {
+            merged_list.add_node(node);
+        }
+        while let Some(node) = list_b.pop_front_node() {
+            merged_list.add_node(node);
         }
 
         merged_list

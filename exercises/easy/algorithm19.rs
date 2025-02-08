@@ -12,8 +12,46 @@
 use std::fmt::{self, Display, Formatter};
 
 pub fn fib(n: i32) -> i32 {
-    // TODO: Implement the logic to calculate the nth Fibonacci number using matrix exponentiation
-    0 // Placeholder return value
+    if n == 0 {
+        return 0;
+    } else if n == 1 {
+        return 1;
+    }
+
+    type Matrix = [[i64; 2]; 2];
+
+    // 矩阵乘法
+    fn matrix_multiply(a: &Matrix, b: &Matrix) -> Matrix {
+        let mut result = [[0; 2]; 2];
+        for i in 0..2 {
+            for j in 0..2 {
+                for k in 0..2 {
+                    result[i][j] += a[i][k] * b[k][j];
+                }
+            }
+        }
+        result
+    }
+
+    // 矩阵快速幂
+    fn matrix_power(matrix: &Matrix, power: i32) -> Matrix {
+        let mut result = [[1, 0], [0, 1]]; // 单位矩阵
+        let mut base = *matrix;
+        let mut p = power;
+
+        while p > 0 {
+            if p % 2 == 1 {
+                result = matrix_multiply(&result, &base);
+            }
+            base = matrix_multiply(&base, &base);
+            p /= 2;
+        }
+        result
+    }
+
+    let fib_matrix: Matrix = [[1, 1], [1, 0]];
+    let result_matrix = matrix_power(&fib_matrix, n - 1);
+    result_matrix[0][0] as i32 // 返回F(n)
 }
 
 #[cfg(test)]
