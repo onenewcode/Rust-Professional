@@ -100,41 +100,40 @@ impl<T> LinkedList<T> {
 }
 
 impl<T: Ord> LinkedList<T> {
-    pub fn merge(mut list_a: LinkedList<T>, mut list_b: LinkedList<T>) -> Self {
+
+    pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self
+    where
+        T: PartialOrd + Copy,
+    {
         let mut merged_list = LinkedList::new();
+        let mut a_ptr = list_a.start;
+        let mut b_ptr = list_b.start;
 
-        loop {
-            let a_head = list_a.start;
-            let b_head = list_b.start;
+        while let (Some(a_node), Some(b_node)) = (a_ptr, b_ptr) {
+            let a_val = unsafe { &(*a_node.as_ptr()).val };
+            let b_val = unsafe { &(*b_node.as_ptr()).val };
 
-            if a_head.is_none() && b_head.is_none() {
-                break;
-            }
-
-            let choose_a = match (a_head, b_head) {
-                (Some(a), Some(b)) => unsafe { (*a.as_ptr()).val <= (*b.as_ptr()).val },
-                (Some(_), None) => true,
-                (None, Some(_)) => false,
-                (None, None) => break,
-            };
-
-            if choose_a {
-                if let Some(node) = list_a.pop_front_node() {
-                    merged_list.add_node(node);
-                }
+            if a_val <= b_val {
+                merged_list.add(*a_val);
+                a_ptr = unsafe { (*a_node.as_ptr()).next };
             } else {
-                if let Some(node) = list_b.pop_front_node() {
-                    merged_list.add_node(node);
-                }
+                merged_list.add(*b_val);
+                b_ptr = unsafe { (*b_node.as_ptr()).next };
             }
         }
 
-        // Handle remaining nodes in list_a or list_b
-        while let Some(node) = list_a.pop_front_node() {
-            merged_list.add_node(node);
+        // Append remaining elements from list_a
+        while let Some(a_node) = a_ptr {
+            let a_val = unsafe { &(*a_node.as_ptr()).val };
+            merged_list.add(*a_val);
+            a_ptr = unsafe { (*a_node.as_ptr()).next };
         }
-        while let Some(node) = list_b.pop_front_node() {
-            merged_list.add_node(node);
+
+        // Append remaining elements from list_b
+        while let Some(b_node) = b_ptr {
+            let b_val = unsafe { &(*b_node.as_ptr()).val };
+            merged_list.add(*b_val);
+            b_ptr = unsafe { (*b_node.as_ptr()).next };
         }
 
         merged_list
