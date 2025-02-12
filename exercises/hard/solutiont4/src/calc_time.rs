@@ -131,14 +131,14 @@ impl Date {
         } else {
             (year, month)
         };
-    
+
         let d = day as i32;
         let c = y / 100; // 世纪数减一
         let y = y % 100; // 年份后两位
-    
+
         // 计算
         let w = (y + y / 4 + c / 4 - 2 * c + (26 * (m + 1)) / 10 + d - 1) % 7;
-    
+
         match w {
             0 => 7,
             1 => 1,
@@ -166,8 +166,8 @@ impl Date {
     fn is_trading_day(&self) -> bool {
         !self.is_weekend() && !self.is_holiday()
     }
-    
-    
+
+
     fn find_days_until_next_trading_day(&self) -> i32 {
         let mut days_passed = 0;
         let mut current_date = self.clone();
@@ -189,8 +189,8 @@ impl Date {
             }
         }
     }
-    
-    
+
+
 }
 
 pub fn time_info(time: &str) -> String {
