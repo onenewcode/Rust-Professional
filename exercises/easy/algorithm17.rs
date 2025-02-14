@@ -9,15 +9,17 @@
     Hint: You can solve this problem using sorting, hash sets, or the two-pointer technique.
 */
 
-use std::{collections::HashSet, fmt::{self, Display, Formatter}};
+use std::fmt::{self, Display, Formatter};
 
 pub fn intersection(nums1: Vec<i32>, nums2: Vec<i32>) -> Vec<i32> {
-    let set1: HashSet<i32> = nums1.into_iter().collect(); // 将 nums1 转换为 HashSet
-    nums2.into_iter()
-        .filter(|e| set1.contains(e)) // 过滤出 nums2 中也出现在 set1 中的元素
-        .collect::<HashSet<i32>>() // 去重并转换为 HashSet（可选步骤，取决于你是否希望结果中没有重复）
-        .into_iter() // 再次转换为迭代器以便收集为 Vec
-        .collect() // 收集为 Vec<i32>
+    // TODO: Implement the logic to find the intersection of two arrays
+    let mut result = Vec::new(); // Placeholder return value
+    for i in 0..nums1.len() {
+        if nums2.contains(&nums1[i]) && !result.contains(&nums1[i]) {
+            result.push(nums1[i]);
+        }
+    }
+    return result
 }
 
 #[cfg(test)]
